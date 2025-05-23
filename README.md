@@ -30,24 +30,28 @@ It supports parametric sweeps over oscillator/projectile masses (`mx`, `my`), si
 ## 🔧 Environment Setup
 
 To ensure reproducibility, use the provided `environment.yml` file to set up your environment.
-
-### ▶️ Step 1: Create the Environment
-
+### ▶️ Step1: Create the Environment
 ```bash
 conda env create -f environment.yml
+```
 This will create an environment named py310_env with all necessary dependencies.
-
 ### ▶️ Step 2: Activate the Environment
 ```bash
 conda activate py310_env
-
+```
 ### ▶️ Optional: Update Environment Later
 ```bash
 conda env update -f environment.yml --prune
+```
 
 🧪 Dependencies
 
 Installed via environment.yml:
-	•	python=3.10
-	•	numpy, scipy, matplotlib
-	•	psutil, memory_profiler
+
+ • ***python=3.10***
+ 
+ • ***numpy, scipy, matplotlib***
+ 
+ • ***psutil, memory_profiler***
+
+
