@@ -11,13 +11,19 @@ It supports parametric sweeps over oscillator/projectile masses (`mx`, `my`), si
 ---
 
 ## 📁 Project Structure
-.
+
 ├── RunSimulation_mx_my.py                # Main runner for simulations
+
 ├── ClassicalQuantumEhrenfest_mx_my.py    # Coupled CQ dynamics
+
 ├── QuantumSimulationModules_mx_my.py     # Quantum dynamics modules
+
 ├── ClassicalSimulationModules_mx_my.py   # Classical dynamics modules
+
 ├── simulation_analysis_tn4096.py         # Plotting and entropy/energy summary
+
 ├── environment.yml                       # Conda environment specification
+
 └── results_tn4096/                       # Output directory for all results
 ---
 
