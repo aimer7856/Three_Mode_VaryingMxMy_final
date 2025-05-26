@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=all_modes_lambda_exp50
+#SBATCH --job-name=all_lambda_exp50
 #SBATCH --array=0-11                     # Adjust this automatically based on how many jobs you calculate 
 #SBATCH --time=7-00:00:00
 #SBATCH --mem=64G
@@ -41,7 +41,7 @@ VY0=-5.0
 SIGMAY=3.0
 TOTAL_TIME=30.0
 TIMESTEPS=4096
-LAMBDA=exp(50)
+LAMBDA=$(python -c "import math; print(math.exp(50))")
 N_eig=32
 
 # Compute indices from SLURM_ARRAY_TASK_ID
