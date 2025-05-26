@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=All_modes_mx_my_tn4096_v1
-#SBATCH --array=0-47                     # 3 modes × 4 mx × 4 my = 48 jobs
+#SBATCH --array=0-47                      # Adjust this automatically based on how many jobs you calculate 
 #SBATCH --time=7-00:00:00
 #SBATCH --mem=48G
 #SBATCH --cpus-per-task=3
@@ -44,13 +44,22 @@ TIMESTEPS=4096
 LAMBDA=1.0
 N_eig=32
 
-MODE_INDEX=$(( SLURM_ARRAY_TASK_ID / 16 ))                      # 0–2
-MX_INDEX=$(( (SLURM_ARRAY_TASK_ID % 16) / 4 ))                  # 0–3
-MY_INDEX=$(( SLURM_ARRAY_TASK_ID % 4 ))                         # 0–3
+# Compute indices from SLURM_ARRAY_TASK_ID
+NUM_MODES=${#MODES[@]}
+NUM_MX=${#MX_VALUES[@]}
+NUM_MY=${#MY_VALUES[@]}
+
+TOTAL_JOBS=$((NUM_MODES * NUM_MX * NUM_MY))
+
+TASK_ID=${SLURM_ARRAY_TASK_ID}
+MODE_INDEX=$(( TASK_ID / (NUM_MX * NUM_MY) ))
+MX_INDEX=$(( (TASK_ID / NUM_MY) % NUM_MX ))
+MY_INDEX=$(( TASK_ID % NUM_MY ))
 
 MODE=${MODES[$MODE_INDEX]}
 MX=${MX_VALUES[$MX_INDEX]}
 MY=${MY_VALUES[$MY_INDEX]}
+
 
 OUT_DIR="results_tn4096/${MODE}/mx${MX}_my${MY}"
 mkdir -p "$OUT_DIR"
