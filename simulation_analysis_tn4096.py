@@ -235,7 +235,7 @@ def plot_entropy_energy_by_mx(grouped, out_dir):
         plt.close(fig)
 
 def main():
-    root = "results_tn4096"
+    root = "results_qq_ny4096"
     panel_dir = os.path.join(root, "panels_all_modes")
     summary_dir = os.path.join(root, "entropy_energy_by_mx")
     os.makedirs(panel_dir, exist_ok=True)
