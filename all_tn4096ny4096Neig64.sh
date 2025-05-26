@@ -1,16 +1,16 @@
 #!/bin/bash
-#SBATCH --job-name=all_modes_lambda_exp50
-#SBATCH --array=0-11                     # Adjust this automatically based on how many jobs you calculate 
+#SBATCH --job-name=all_tn4096ny4096Neig64
+#SBATCH --array=0-47                      # Adjust this automatically based on how many jobs you calculate 
 #SBATCH --time=7-00:00:00
-#SBATCH --mem=64G
+#SBATCH --mem=128G
 #SBATCH --cpus-per-task=3
-#SBATCH --output=logs_lambda_exp50/%x_%A_%a.out
-#SBATCH --error=logs_lambda_exp50/%x_%A_%a.err
+#SBATCH --output=logs_tn4096ny4096Neig64/%x_%A_%a.out
+#SBATCH --error=logs_tn4096ny4096Neig64/%x_%A_%a.err
 #SBATCH --mail-user=doyeon.k@unb.ca
 #SBATCH --mail-type=ALL
 
 # Make sure SLURM can write its own logs:
-mkdir -p logs_lambda_exp50
+mkdir -p logs_tn4096ny4096Neig64
 
 #  Conda activation
 source ~/miniconda3/etc/profile.d/conda.sh
@@ -25,7 +25,7 @@ export PYTHONNOUSERSITE=True
 # Parameter sweeps
 MODES=("quantum" "cq" "classical")
 MX_VALUES=(0.5 1.0 2.0 4.0)
-MY_VALUES=(2.0)
+MY_VALUES=(0.25 0.5 1.0 2.0)
 
 # Fixed parameters
 NX=256
@@ -41,8 +41,8 @@ VY0=-5.0
 SIGMAY=3.0
 TOTAL_TIME=30.0
 TIMESTEPS=4096
-LAMBDA=exp(50)
-N_eig=32
+LAMBDA=1.0
+N_eig=64
 
 # Compute indices from SLURM_ARRAY_TASK_ID
 NUM_MODES=${#MODES[@]}
@@ -61,7 +61,7 @@ MX=${MX_VALUES[$MX_INDEX]}
 MY=${MY_VALUES[$MY_INDEX]}
 
 
-OUT_DIR="results_lambda_exp50/${MODE}/mx${MX}_my${MY}"
+OUT_DIR="results_tn4096ny4096Neig64/${MODE}/mx${MX}_my${MY}"
 mkdir -p "$OUT_DIR"
 
 # Tell your Python code where to write its psutil memory log:
