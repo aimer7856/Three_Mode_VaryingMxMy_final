@@ -127,7 +127,7 @@ def process_folder(mx, my, data_dict, out_dir):
         y0   = qmeta.get('y0', 0.0)
         sigmay = qmeta.get('sigmay', 3.0)
         
-        lambda_ = qmeta.get('lambda')
+        lambda_ = qmeta.get('lambda_')
         total_time = qmeta.get('total_time')
         timesteps = qmeta.get('timesteps')
         
