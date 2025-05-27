@@ -263,54 +263,58 @@ def plot_observable_heatmaps(results, root_dir, share_colorbar=True):
     fig_proj.savefig(os.path.join(save_dir, "comparison_heatmaps_projectile_observables.png"), bbox_inches='tight')
 
 if __name__ == "__main__":
+    generate_animations = True  # Set to False to skip animation rendering
     root_dir = "/Users/doyeonkim/OneDrive/Documents/Project1_Sanjeev/Three_Mode_VaryingMxMy_May23/results_tn4096"  # CHANGE THIS to your actual root directory
     results, results_time = collect_all_norms(root_dir)
     plot_observable_heatmaps(results, root_dir)
 
-    # Generate heatmap animations of time evolution using results_time
-    import matplotlib.animation as animation
+    if generate_animations:
+        # Generate heatmap animations of time evolution using results_time
+        import matplotlib.animation as animation
 
-    def create_heatmap_animation(time_series_data, title_prefix, save_path, mx_vals, my_vals, max_frames=100):
-        fig, ax = plt.subplots(figsize=(8, 6))
-        Z = np.full((len(my_vals), len(mx_vals)), np.nan)
-        im = ax.imshow(Z, origin="lower", extent=[min(mx_vals), max(mx_vals), min(my_vals), max(my_vals)],
-                       aspect='auto', cmap='viridis', vmin=0, vmax=1)
-        ax.set_xlabel("mx")
-        ax.set_ylabel("my")
-        title = ax.set_title("")
-        cbar = plt.colorbar(im, ax=ax, label=r"$F(mx, my)$")
+        def create_heatmap_animation(time_series_data, title_prefix, save_path, mx_vals, my_vals, max_frames=100):
+            fig, ax = plt.subplots(figsize=(8, 6))
+            Z = np.full((len(my_vals), len(mx_vals)), np.nan)
+            # Compute vmax from the actual data
+            vmax = max(val.max() for _, _, val in time_series_data)
+            im = ax.imshow(Z, origin="lower", extent=[min(mx_vals), max(mx_vals), min(my_vals), max(my_vals)],
+                           aspect='auto', cmap='viridis', vmin=0, vmax=vmax)
+            ax.set_xlabel("mx")
+            ax.set_ylabel("my")
+            title = ax.set_title("")
+            cbar = plt.colorbar(im, ax=ax, label=r"$F(mx, my)$")
 
-        # Determine uniform sampling frames
-        T = min(len(val) for _, _, val in time_series_data)
-        indices = np.linspace(0, T - 1, min(max_frames, T), dtype=int)
+            # Determine uniform sampling frames
+            T = min(len(val) for _, _, val in time_series_data)
+            indices = np.linspace(0, T - 1, min(max_frames, T), dtype=int)
 
-        def update(frame_idx):
-            Z[:, :] = np.nan
-            frame = indices[frame_idx]
-            for mx, my, val in time_series_data:
-                i = my_vals.index(my)
-                j = mx_vals.index(mx)
-                Z[i, j] = val[frame] if frame < len(val) else np.nan
-            im.set_array(Z)
-            title.set_text(f"{title_prefix} - Frame {frame}")
-            return [im, title]
+            def update(frame_idx):
+                Z[:, :] = np.nan
+                frame = indices[frame_idx]
+                for mx, my, val in time_series_data:
+                    i = my_vals.index(my)
+                    j = mx_vals.index(mx)
+                    Z[i, j] = val[frame] if frame < len(val) else np.nan
+                im.set_array(Z)
+                title.set_text(f"{title_prefix} - Frame {frame}")
+                return [im, title]
 
-        ani = animation.FuncAnimation(fig, update, frames=len(indices), interval=200, blit=False)
-        ani.save(save_path, writer='ffmpeg', dpi=150)
-        plt.close()
+            ani = animation.FuncAnimation(fig, update, frames=len(indices), interval=200, blit=False)
+            ani.save(save_path, writer='ffmpeg', dpi=150)
+            plt.close()
 
-    # Run animation creation for all keys
-    all_keys = list(results_time.keys())
-    mx_vals_all = sorted(set(mx for key in all_keys for mx, _, _ in results_time[key]))
-    my_vals_all = sorted(set(my for key in all_keys for _, my, _ in results_time[key]))
-    save_dir = os.path.join(root_dir, "comparison_plots")
+        # Run animation creation for all keys
+        all_keys = list(results_time.keys())
+        mx_vals_all = sorted(set(mx for key in all_keys for mx, _, _ in results_time[key]))
+        my_vals_all = sorted(set(my for key in all_keys for _, my, _ in results_time[key]))
+        save_dir = os.path.join(root_dir, "comparison_plots")
 
-    for key in all_keys:
-        parts = key.split("_")
-        obs = "_".join(parts[:-3])
-        m1 = parts[-3]
-        m2 = parts[-1]
-        label = " ".join(obs.split("_")).capitalize()
-        title_prefix = f"{label} {m1} vs {m2}"
-        save_path = os.path.join(save_dir, f"{key}_evolution.mp4")
-        create_heatmap_animation(results_time[key], title_prefix, save_path, mx_vals_all, my_vals_all)
+        for key in all_keys:
+            parts = key.split("_")
+            obs = "_".join(parts[:-3])
+            m1 = parts[-3]
+            m2 = parts[-1]
+            label = " ".join(obs.split("_")).capitalize()
+            title_prefix = f"{label} {m1} vs {m2}"
+            save_path = os.path.join(save_dir, f"{key}_evolution.mp4")
+            create_heatmap_animation(results_time[key], title_prefix, save_path, mx_vals_all, my_vals_all)
