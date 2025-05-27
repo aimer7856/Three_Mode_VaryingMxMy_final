@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-root_dir = "/path/to/root"  # update this to your actual root path
+root_dir = "/Users/doyeonkim/OneDrive/Documents/Project1_Sanjeev/Three_Mode_VaryingMxMy_May23/results_tn4096"  # update this to your actual root path
 modes = ["quantum", "cq", "classical"]
 
 for mode in modes:

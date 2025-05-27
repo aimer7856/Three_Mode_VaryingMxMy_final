@@ -65,7 +65,7 @@ def collect_all_norms(root_dir):
 
     return results
 
-def plot_heatmap(data, title):
+def plot_heatmap(data, title, ax=None):
     mx_vals = sorted(set(mx for mx, _, _ in data))
     my_vals = sorted(set(my for _, my, _ in data))
     Z = np.full((len(my_vals), len(mx_vals)), np.nan)
@@ -75,19 +75,55 @@ def plot_heatmap(data, title):
         j = mx_vals.index(mx)
         Z[i, j] = val
 
-    plt.figure(figsize=(8, 6))
-    plt.imshow(Z, origin="lower", extent=[min(mx_vals), max(mx_vals), min(my_vals), max(my_vals)],
-               aspect='auto', cmap='viridis')
-    plt.colorbar(label=r"$F(mx, my)$")
-    plt.xlabel("mx")
-    plt.ylabel("my")
-    plt.title(title)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(8, 6))
+        show_fig = True
+    else:
+        show_fig = False
+
+    im = ax.imshow(Z, origin="lower", extent=[min(mx_vals), max(mx_vals), min(my_vals), max(my_vals)],
+                  aspect='auto', cmap='viridis')
+    ax.set_xlabel("mx")
+    ax.set_ylabel("my")
+    ax.set_title(title)
+    if show_fig:
+        cbar = plt.colorbar(im, ax=ax, label=r"$F(mx, my)$")
+        plt.show()
+    else:
+        return im
+
+# New function for plotting all heatmaps in subplots with shared colorbar
+def plot_all_heatmaps(results, share_colorbar=True):
+    titles = [
+        "Quantum vs CQ",
+        "Quantum vs Classical",
+        "CQ vs Classical"
+    ]
+    keys = [
+        "quantum_vs_cq",
+        "quantum_vs_classical",
+        "cq_vs_classical"
+    ]
+    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
+    ims = []
+    for ax, key, title in zip(axes, keys, titles):
+        im = plot_heatmap(results[key], title, ax=ax)
+        ims.append(im)
+    plt.tight_layout()
+    if share_colorbar:
+        # Create a single colorbar for all subplots
+        fig.subplots_adjust(right=0.85)
+        cbar_ax = fig.add_axes([0.88, 0.15, 0.03, 0.7])
+        vmin = min(im.get_array().min() for im in ims)
+        vmax = max(im.get_array().max() for im in ims)
+        norm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+        norm.set_array([])
+        cbar = fig.colorbar(norm, cax=cbar_ax, label=r"$F(mx, my)$")
     plt.show()
+    fig.savefig("comparison_heatmaps.png")
 
 if __name__ == "__main__":
-    root_dir = "/path/to/root"  # CHANGE THIS to your actual root directory
+    root_dir = "/Users/doyeonkim/OneDrive/Documents/Project1_Sanjeev/Three_Mode_VaryingMxMy_May23/results_tn4096"  # CHANGE THIS to your actual root directory
     results = collect_all_norms(root_dir)
 
-    plot_heatmap(results["quantum_vs_cq"], "Quantum vs CQ")
-    plot_heatmap(results["quantum_vs_classical"], "Quantum vs Classical")
-    plot_heatmap(results["cq_vs_classical"], "CQ vs Classical")
+    plot_all_heatmaps(results)
