@@ -96,6 +96,9 @@ def compute_l2_norm(t, x1, x2):
     dt = np.mean(np.diff(t))
     return np.sqrt(np.sum((x1 - x2)**2) * dt)
 
+def compute_l2_norm_time_series(x1, x2):
+    return np.abs(x1 - x2)
+
 def collect_all_norms(root_dir):
     # Oscillator and projectile observables
     osc_observables = ["osc_position", "osc_momentum", "osc_energy"]
@@ -107,6 +110,7 @@ def collect_all_norms(root_dir):
     ]
     # Prepare result dictionaries for both sets
     results = {f"{obs}_{m1}_vs_{m2}": [] for obs in osc_observables + proj_observables for m1, m2 in mode_pairs}
+    results_time = {f"{obs}_{m1}_vs_{m2}": [] for obs in osc_observables + proj_observables for m1, m2 in mode_pairs}
 
     subdirs = os.listdir(os.path.join(root_dir, "quantum"))
     for folder in sorted(subdirs):
@@ -137,6 +141,7 @@ def collect_all_norms(root_dir):
                     x2 = data[m2][1]
                     key = f"{observable}_{m1}_vs_{m2}"
                     results[key].append((mx, my, compute_l2_norm(t, x1, x2)))
+                    results_time[key].append((mx, my, compute_l2_norm_time_series(x1, x2)))
 
             # Projectile observables
             for observable in proj_observables:
@@ -150,11 +155,12 @@ def collect_all_norms(root_dir):
                     x2 = data[m2][1]
                     key = f"{observable}_{m1}_vs_{m2}"
                     results[key].append((mx, my, compute_l2_norm(t, x1, x2)))
+                    results_time[key].append((mx, my, compute_l2_norm_time_series(x1, x2)))
 
         except Exception as e:
             print(f"Error at mx={mx}, my={my}: {e}")
 
-    return results
+    return results, results_time
 
 def plot_heatmap(data, title, ax=None):
     mx_vals = sorted(set(mx for mx, _, _ in data))
@@ -258,5 +264,53 @@ def plot_observable_heatmaps(results, root_dir, share_colorbar=True):
 
 if __name__ == "__main__":
     root_dir = "/Users/doyeonkim/OneDrive/Documents/Project1_Sanjeev/Three_Mode_VaryingMxMy_May23/results_tn4096"  # CHANGE THIS to your actual root directory
-    results = collect_all_norms(root_dir)
+    results, results_time = collect_all_norms(root_dir)
     plot_observable_heatmaps(results, root_dir)
+
+    # Generate heatmap animations of time evolution using results_time
+    import matplotlib.animation as animation
+
+    def create_heatmap_animation(time_series_data, title_prefix, save_path, mx_vals, my_vals, max_frames=100):
+        fig, ax = plt.subplots(figsize=(8, 6))
+        Z = np.full((len(my_vals), len(mx_vals)), np.nan)
+        im = ax.imshow(Z, origin="lower", extent=[min(mx_vals), max(mx_vals), min(my_vals), max(my_vals)],
+                       aspect='auto', cmap='viridis', vmin=0, vmax=1)
+        ax.set_xlabel("mx")
+        ax.set_ylabel("my")
+        title = ax.set_title("")
+        cbar = plt.colorbar(im, ax=ax, label=r"$F(mx, my)$")
+
+        # Determine uniform sampling frames
+        T = min(len(val) for _, _, val in time_series_data)
+        indices = np.linspace(0, T - 1, min(max_frames, T), dtype=int)
+
+        def update(frame_idx):
+            Z[:, :] = np.nan
+            frame = indices[frame_idx]
+            for mx, my, val in time_series_data:
+                i = my_vals.index(my)
+                j = mx_vals.index(mx)
+                Z[i, j] = val[frame] if frame < len(val) else np.nan
+            im.set_array(Z)
+            title.set_text(f"{title_prefix} - Frame {frame}")
+            return [im, title]
+
+        ani = animation.FuncAnimation(fig, update, frames=len(indices), interval=200, blit=False)
+        ani.save(save_path, writer='ffmpeg', dpi=150)
+        plt.close()
+
+    # Run animation creation for all keys
+    all_keys = list(results_time.keys())
+    mx_vals_all = sorted(set(mx for key in all_keys for mx, _, _ in results_time[key]))
+    my_vals_all = sorted(set(my for key in all_keys for _, my, _ in results_time[key]))
+    save_dir = os.path.join(root_dir, "comparison_plots")
+
+    for key in all_keys:
+        parts = key.split("_")
+        obs = "_".join(parts[:-3])
+        m1 = parts[-3]
+        m2 = parts[-1]
+        label = " ".join(obs.split("_")).capitalize()
+        title_prefix = f"{label} {m1} vs {m2}"
+        save_path = os.path.join(save_dir, f"{key}_evolution.mp4")
+        create_heatmap_animation(results_time[key], title_prefix, save_path, mx_vals_all, my_vals_all)
