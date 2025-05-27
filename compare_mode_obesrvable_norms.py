@@ -9,14 +9,41 @@ def extract_mx_my(folder_name):
         return float(match.group(1)), float(match.group(2))
     return None, None
 
-def load_observable(path, mode):
+def load_observable(path, mode, observable="position"):
     data = np.load(path)
     if mode == "quantum":
-        return data["t"], data["oscillator"][:, 0]
+        t = data["t"]
+        if observable == "position":
+            return t, data["oscillator"][:, 0]
+        elif observable == "momentum":
+            return t, data["oscillator"][:, 1]
+        elif observable == "energy":
+            # Use oscillator[:, 5] for quantum energy
+            return t, data["oscillator"][:, 5]
+        else:
+            raise ValueError(f"Unknown observable: {observable}")
     elif mode == "cq":
-        return data["t"], data["x"]
+        t = data["t"]
+        if observable == "position":
+            return t, data["x"]
+        elif observable == "momentum":
+            return t, data["px"]
+        elif observable == "energy":
+            # Use Hx for cq energy
+            return t, data["Hx"]
+        else:
+            raise ValueError(f"Unknown observable: {observable}")
     elif mode == "classical":
-        return data["t"], data["x"]
+        t = data["t"]
+        if observable == "position":
+            return t, data["x"]
+        elif observable == "momentum":
+            return t, data["px"]
+        elif observable == "energy":
+            # Use Hx for classical energy
+            return t, data["Hx"]
+        else:
+            raise ValueError(f"Unknown observable: {observable}")
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
@@ -25,11 +52,13 @@ def compute_l2_norm(t, x1, x2):
     return np.sqrt(np.sum((x1 - x2)**2) * dt)
 
 def collect_all_norms(root_dir):
-    results = {
-        "quantum_vs_cq": [],
-        "quantum_vs_classical": [],
-        "cq_vs_classical": []
-    }
+    observables = ["position", "momentum", "energy"]
+    mode_pairs = [
+        ("quantum", "cq"),
+        ("quantum", "classical"),
+        ("cq", "classical")
+    ]
+    results = {f"{obs}_{m1}_vs_{m2}": [] for obs in observables for m1, m2 in mode_pairs}
 
     subdirs = os.listdir(os.path.join(root_dir, "quantum"))
     for folder in sorted(subdirs):
@@ -48,17 +77,18 @@ def collect_all_norms(root_dir):
             if not all(os.path.exists(p) for p in paths.values()):
                 continue
 
-            data = {mode: load_observable(paths[mode], mode) for mode in paths}
-            if not (np.allclose(data["quantum"][0], data["cq"][0]) and
-                    np.allclose(data["quantum"][0], data["classical"][0])):
-                continue
+            for observable in observables:
+                data = {mode: load_observable(paths[mode], mode, observable) for mode in paths}
+                if not (np.allclose(data["quantum"][0], data["cq"][0]) and
+                        np.allclose(data["quantum"][0], data["classical"][0])):
+                    continue
 
-            t = data["quantum"][0]
-            qx, cx, kx = data["quantum"][1], data["cq"][1], data["classical"][1]
-
-            results["quantum_vs_cq"].append((mx, my, compute_l2_norm(t, qx, cx)))
-            results["quantum_vs_classical"].append((mx, my, compute_l2_norm(t, qx, kx)))
-            results["cq_vs_classical"].append((mx, my, compute_l2_norm(t, cx, kx)))
+                t = data["quantum"][0]
+                for m1, m2 in mode_pairs:
+                    x1 = data[m1][1]
+                    x2 = data[m2][1]
+                    key = f"{observable}_{m1}_vs_{m2}"
+                    results[key].append((mx, my, compute_l2_norm(t, x1, x2)))
 
         except Exception as e:
             print(f"Error at mx={mx}, my={my}: {e}")
@@ -92,38 +122,42 @@ def plot_heatmap(data, title, ax=None):
     else:
         return im
 
-# New function for plotting all heatmaps in subplots with shared colorbar
-def plot_all_heatmaps(results, share_colorbar=True):
-    titles = [
-        "Quantum vs CQ",
-        "Quantum vs Classical",
-        "CQ vs Classical"
+# New function for plotting all heatmaps in 3x3 subplots with shared colorbar
+def plot_all_heatmaps(results, root_dir, share_colorbar=True):
+    observables = ["position", "momentum", "energy"]
+    mode_pairs = [
+        ("quantum", "cq"),
+        ("quantum", "classical"),
+        ("cq", "classical")
     ]
-    keys = [
-        "quantum_vs_cq",
-        "quantum_vs_classical",
-        "cq_vs_classical"
-    ]
-    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
+    titles = []
+    keys = []
+    for obs in observables:
+        for m1, m2 in mode_pairs:
+            titles.append(f"L2 Norm of {obs.capitalize()}: {m1.capitalize()} vs {m2.capitalize()}")
+            keys.append(f"{obs}_{m1}_vs_{m2}")
+
+    fig, axes = plt.subplots(3, 3, figsize=(20, 18))
     ims = []
-    for ax, key, title in zip(axes, keys, titles):
+    for ax, key, title in zip(axes.flat, keys, titles):
         im = plot_heatmap(results[key], title, ax=ax)
         ims.append(im)
     plt.tight_layout()
     if share_colorbar:
-        # Create a single colorbar for all subplots
-        fig.subplots_adjust(right=0.85)
-        cbar_ax = fig.add_axes([0.88, 0.15, 0.03, 0.7])
+        fig.subplots_adjust(right=0.92)
+        cbar_ax = fig.add_axes([0.94, 0.15, 0.02, 0.7])
         vmin = min(im.get_array().min() for im in ims)
         vmax = max(im.get_array().max() for im in ims)
         norm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=vmin, vmax=vmax))
         norm.set_array([])
         cbar = fig.colorbar(norm, cax=cbar_ax, label=r"$F(mx, my)$")
     plt.show()
-    fig.savefig("comparison_heatmaps.png")
+    save_dir = os.path.join(root_dir, "comparison_plots")
+    os.makedirs(save_dir, exist_ok=True)
+    fig.savefig(os.path.join(save_dir, "comparison_heatmaps_all_observables.png"))
 
 if __name__ == "__main__":
     root_dir = "/Users/doyeonkim/OneDrive/Documents/Project1_Sanjeev/Three_Mode_VaryingMxMy_May23/results_tn4096"  # CHANGE THIS to your actual root directory
     results = collect_all_norms(root_dir)
 
-    plot_all_heatmaps(results)
+    plot_all_heatmaps(results, root_dir)
