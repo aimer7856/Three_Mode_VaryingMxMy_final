@@ -264,7 +264,7 @@ def plot_observable_heatmaps(results, root_dir, share_colorbar=True):
 
 if __name__ == "__main__":
     generate_animations = True  # Set to False to skip animation rendering
-    root_dir = "/Users/doyeonkim/OneDrive/Documents/Project1_Sanjeev/Three_Mode_VaryingMxMy_May23/results_tn4096"  # CHANGE THIS to your actual root directory
+    root_dir = "/Users/doyeonkim/OneDrive/Documents/Project1_Sanjeev/Three_Mode_VaryingMxMy_May23/results_Neig32tn4096ny4096"  # CHANGE THIS to your actual root directory
     results, results_time = collect_all_norms(root_dir)
     plot_observable_heatmaps(results, root_dir)
 
