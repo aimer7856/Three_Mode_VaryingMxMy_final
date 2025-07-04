@@ -270,10 +270,10 @@ def main():
    # print("contains renorm?", 'vec /= nrm' in open(qmod.__file__).read())
 
     # Full quantum
-    if 'quantum' in modes:
-        (T_q, qdata_q, ext_q), rt_q = profile_and_dump(run_quantum, 'quantum', params)
-        ext_q['runtime_quantum'] = format_hms_str(rt_q)
-        metadata['quantum']      = ext_q
+    if 'qq' in modes:
+        (T_q, qdata_q, ext_q), rt_q = profile_and_dump(run_quantum, 'qq', params)
+        ext_q['runtime_qq'] = format_hms_str(rt_q)
+        metadata['qq']      = ext_q
         np.savez(out_dir/f"{base}.npz", t=T_q, **qdata_q)
 
     # Classical-Quantum mean-field
@@ -284,10 +284,10 @@ def main():
         np.savez(out_dir/f"{base}.npz", t=T_cq, **qdata_cq)
 
     # Purely classical
-    if 'classical' in modes:
-        (T_cl, cdata, ext_c), rt_cl = profile_and_dump(run_classical, 'classical', params)
-        ext_c['runtime_classical'] = format_hms_str(rt_cl)
-        metadata['classical']      = ext_c
+    if 'cc' in modes:
+        (T_cl, cdata, ext_c), rt_cl = profile_and_dump(run_classical, 'cc', params)
+        ext_c['runtime_cc'] = format_hms_str(rt_cl)
+        metadata['cc']      = ext_c
         np.savez(out_dir/f"{base}.npz", t=T_cl, **cdata)
 
     # Write metadata JSON
