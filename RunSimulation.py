@@ -1,18 +1,21 @@
 """
 Profiled batch runner for three simulation types:
- - full quantum bipartite (QuantumSimulationModules)
- - classical–quantum mean-field (ClassicalQuantumEhrenfest)
- - purely classical RK45 (ClassicalSimulationModules)
+ - full quantum bipartite (QQmodule)
+ - classical–quantum mean-field (CQEhrenfestmodule)
+ - purely classical RK45 (CCmodule)
 
 Use --mode to pick one or all.
 """
 
 
-from memory_profiler import profile
+# from memory_profiler import profile
 
 import os
 import time
 import psutil
+
+print("[THREADING] OMP_NUM_THREADS:", os.environ.get("OMP_NUM_THREADS"))
+print("[THREADING] MKL_NUM_THREADS:", os.environ.get("MKL_NUM_THREADS"))
 
 import argparse
 import time
@@ -98,7 +101,7 @@ def profile_and_dump(fn, name, *args, **kwargs):
 
 # --- Simulation Routines ---------------------------------------------------
 
-@profile
+# @profile
 def run_quantum(params: dict):
     """
     Execute the full quantum bipartite simulation.
@@ -138,7 +141,7 @@ def run_quantum(params: dict):
     return T, qdata, q_params
 
 
-@profile
+# @profile
 def run_cq(params: dict):
     """
     Run the Classical–Quantum Ehrenfest solver.
@@ -170,7 +173,7 @@ def run_cq(params: dict):
     cqdata = output
     return t, cqdata, cq_params
 
-@profile
+# @profile
 def run_classical(params: dict):
     """
     Run the purely classical RK45 simulation.
@@ -247,7 +250,7 @@ def parse_args():
 
 # --- Main ------------------------------------------------------------------
 
-@profile
+# @profile
 def main():
     args   = parse_args()
     params = vars(args)
