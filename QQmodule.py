@@ -245,7 +245,7 @@ class Quantum_Bipartite_System:
         theta_0 = -0.5 * abs_alpha**2 * np.sin(-2 * sigma)
 
         # Width of ground state
-        sigmax = np.sqrt(hbar / (2 * m * omega))
+        #sigmax = np.sqrt(hbar / (2 * m * omega))
         norm_x = (m * omega / (np.pi * hbar))**0.25
 
         # Oscillator's coherent wavefunction
