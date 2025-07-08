@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=cc_test
+#SBATCH --job-name=cc_coherent
 #SBATCH --array=0-2                     # <-- adjust this based on line count - 2
-#SBATCH --time=01:00:00
-#SBATCH --mem=16G
+#SBATCH --time=0:30:00
+#SBATCH --mem=8G
 #SBATCH --cpus-per-task=1
 #SBATCH --output=logs_cc/%x_%A_%a.out
 #SBATCH --error=logs_cc/%x_%A_%a.err

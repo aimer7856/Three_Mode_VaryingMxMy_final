@@ -12,19 +12,19 @@ x0_vals     = [0.0, 1.0, 2.0]
 vx0_vals    = [0.0]
 
 # Fixed parameters
-nx_vals     = [32]
-xmin_vals   = [-5.0]
-xmax_vals   = [5.0]
-ny_vals     = [128]
-ymin_vals   = [-5.0]
-ymax_vals   = [64.0]
+nx_vals     = [256]
+xmin_vals   = [-10.0]
+xmax_vals   = [10.0]
+ny_vals     = [4096]
+ymin_vals   = [-15.0]
+ymax_vals   = [130.0]
 y0_vals     = [10.0]
 vy0_vals    = [-1.0]
 sigmay_vals = [3.0]
-total_time_vals = [10.0]
-timesteps_vals  = [128]
-lambda_vals = [0.0]
-n_eig_vals  = [16]
+total_time_vals = [30.0]
+timesteps_vals  = [4096]
+lambda_vals = [1.0]
+n_eig_vals  = [32]
 
 # Header
 header = [
@@ -35,7 +35,7 @@ header = [
 ]
 
 #with open(os.path.join("test", "coherent_param_list.txt"), "w") as f:
-with open("coherent_param_list_test.txt", "w") as f:
+with open("coherent_param_list.txt", "w") as f:
     f.write(','.join(header) + '\n')
     for combo in itertools.product(
         modes, mx_vals, my_vals, x0_vals, vx0_vals,

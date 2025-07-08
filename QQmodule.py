@@ -257,7 +257,7 @@ class Quantum_Bipartite_System:
 
         # Projectile's Gaussian wavefunction
         norm_y = (1.0 / (np.pi * self.sigmay**2))**0.25
-        psi_y = norm_y * np.exp(-((Y - self.y0)**2) / (2 * self.sigmay**2)) * np.exp(-1j * self.py * Y)
+        psi_y = norm_y * np.exp(-((Y - self.y0)**2) / (2 * self.sigmay**2)) * np.exp(1j * self.py * Y)
 
         psi = psi_x * psi_y
         return psi

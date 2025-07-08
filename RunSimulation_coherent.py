@@ -211,7 +211,7 @@ def parse_args():
         description="Profiled runner for quantum, CQ, and classical sims"
     )
     parser.add_argument(
-        '--mode', choices=['quantum','cq','classical','all'], default='all',
+        '--mode', choices=['qq','cq','cc','all'], default='all',
         help="Which simulation(s) to run"
     )
     

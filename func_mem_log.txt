@@ -1,0 +1,16 @@
+timestamp,elapsed_seconds,note,memory_MB
+1751990417.57,0.03,before CQ system init,93.42
+1751990417.67,0.13,after CQ system init,93.73
+1751990417.67,0.13,start solve,93.73
+1751990417.79,0.25,step 0 in solve,94.55
+1751990417.80,0.26,step 113 in solve,94.55
+1751990417.82,0.27,step 227 in solve,94.55
+1751990417.83,0.29,step 341 in solve,94.55
+1751990417.84,0.30,step 454 in solve,94.55
+1751990417.85,0.31,step 568 in solve,94.55
+1751990417.87,0.32,step 682 in solve,94.55
+1751990417.88,0.34,step 795 in solve,94.55
+1751990417.89,0.35,step 909 in solve,94.55
+1751990417.90,0.36,step 1023 in solve,94.55
+1751990417.90,0.36,end solve,94.55
+1751990417.90,0.36,after cq.solve,94.55

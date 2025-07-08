@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --job-name=cc_test
+#SBATCH --job-name=qq_coherent
 #SBATCH --array=0-2                     # <-- adjust this based on line count - 2
-#SBATCH --time=01:00:00
-#SBATCH --mem=16G
-#SBATCH --cpus-per-task=1
-#SBATCH --output=logs_cc/%x_%A_%a.out
-#SBATCH --error=logs_cc/%x_%A_%a.err
+#SBATCH --time=4-01:00:00
+#SBATCH --mem=128G
+#SBATCH --cpus-per-task=3
+#SBATCH --output=logs_qq/%x_%A_%a.out
+#SBATCH --error=logs_qq/%x_%A_%a.err
 #SBATCH --mail-user=doyeon.k@unb.ca
 #SBATCH --mail-type=ALL
 
-mkdir -p logs_cc
+mkdir -p logs_qq
 
 # Conda activation
 source ~/miniconda3/etc/profile.d/conda.sh
@@ -19,8 +19,8 @@ unset PYTHONPATH
 export PYTHONNOUSERSITE=True
 
 # Read parameter line
-PARAM_FILE="param_list_cc.txt"
-# If param_list_cc.txt has a header, skip it; otherwise, remove 'tail -n +2'
+PARAM_FILE="param_list_qq.txt"
+# If param_list_qq.txt has a header, skip it; otherwise, remove 'tail -n +2'
 LINE=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" "$PARAM_FILE")
 
 IFS=',' read -r MODE MX MY X0 VX0 NX XMIN XMAX NY YMIN YMAX Y0 VY0 SIGMAY TOTAL_TIME TIMESTEPS LAMBDA N_EIG FILENAME <<< "$LINE"

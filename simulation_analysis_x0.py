@@ -6,14 +6,23 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import re
 
-def extract_mx_my(folder_name):
+# def extract_mx_my(folder_name):
+#     """
+#     Extract mx and my values from folder names like mx1.0_my0.5
+#     """
+#     match = re.match(r"mx(\d+(?:\.\d+)?)_my(\d+(?:\.\d+)?)", folder_name)
+#     if match:
+#         return float(match.group(1)), float(match.group(2))
+#     return None, None
+
+def extract_x0(folder_name):
     """
-    Extract mx and my values from folder names like mx1.0_my0.5
+    Extract x0 from folder names like 'qq_x00.0', 'abc_x01.5', etc.
     """
-    match = re.match(r"mx(\d+(?:\.\d+)?)_my(\d+(?:\.\d+)?)", folder_name)
+    match = re.search(r"_x0(-?\d+(?:\.\d+)?)", folder_name)
     if match:
-        return float(match.group(1)), float(match.group(2))
-    return None, None
+        return float(match.group(1))
+    return None
 
 def load_simulation_data(folder, mode):
     """
@@ -21,15 +30,15 @@ def load_simulation_data(folder, mode):
     mode must be one of: 'qq', 'cc', 'cq'
     """
     if mode == "qq":
-        npz_files = glob.glob(os.path.join(folder, "*_*.npz"))
+        npz_files = glob.glob(os.path.join(folder, "*.npz"))
     elif mode == "cc":
-        npz_files = glob.glob(os.path.join(folder, "*cc_*.npz"))
+        npz_files = glob.glob(os.path.join(folder, "*.npz"))
     elif mode == "cq":
-        npz_files = glob.glob(os.path.join(folder, "*cq_*.npz"))
+        npz_files = glob.glob(os.path.join(folder, "*.npz"))
     else:
         raise ValueError(f"Unknown mode {mode}")
 
-    json_files = glob.glob(os.path.join(folder, "*_params*.json"))
+    json_files = glob.glob(os.path.join(folder, "*_params.json"))
 
     if not npz_files or not json_files:
         raise FileNotFoundError(f"Missing data for {mode} in {folder}")
@@ -39,12 +48,12 @@ def load_simulation_data(folder, mode):
         params = json.load(f)
     return data, params
 
-def scan_all_data(root_dir="results_test"):
+def scan_all_data(root_dir="results_coherent"):
     """
     Scan root_dir for subfolders: 'qq', 'cq', 'cc'
-    Under each, look for mx*_my* folders and load data.
+    Under each, look for x0 folders and load data.
     Returns:
-        results[(mx, my)] = {'qq':(...), 'cc':(...), 'cq':(...)}
+        results[(x0)] = {'qq':(...), 'cc':(...), 'cq':(...)}
     """
     folder_map = {
         "qq": "qq",
@@ -61,16 +70,13 @@ def scan_all_data(root_dir="results_test"):
         
             if not os.path.isdir(subpath):
                 continue
-            mx, my = extract_mx_my(sub)
-        
-            if mx is None or my is None:
+            x0 = extract_x0(sub)
+
+            if x0 is None:
                 continue
             try:
-                #print("Contents of", subpath, ":", os.listdir(subpath))
-                #print("  .npz matches:", glob.glob(os.path.join(subpath, "*_*.npz")))
-                #print("  .json matches:", glob.glob(os.path.join(subpath, "*params_*.json")))
                 data, params = load_simulation_data(subpath, mode_key)
-                results.setdefault((mx, my), {})[mode_key] = (data, params)
+                results.setdefault((x0), {})[mode_key] = (data, params)
             except Exception as e:
                 print(f"[WARN] {mode_key} load failed at {subpath}: {e}")
     return results
@@ -88,7 +94,7 @@ def plot_subplot(ax, title, label, t, data_c, data_q, data_cq=None, std_q=None):
     ax.legend()
     ax.grid(True)
 
-def process_folder(mx, my, data_dict, out_dir):
+def process_folder(x0, data_dict, out_dir):
     fig, axs = plt.subplots(3,3,figsize=(18,18))
     plt.subplots_adjust(left=0.04, right=0.96, bottom=0.04, top=0.88, wspace=0.15, hspace=0.2)
 
@@ -132,6 +138,9 @@ def process_folder(mx, my, data_dict, out_dir):
         xmax = qmeta.get('xmax', 10)
         nx   = qmeta.get('nx', 256)
         x0   = qmeta.get('x0', 0.0)
+        vx0 = qmeta.get("vx0")
+        vy0 = qmeta.get("vy0")
+        mx = qmeta.get("mx")
         sigmax = qmeta.get('sigmax', 1.0)
         my   = qmeta.get('my', 1)
         ymin = qmeta.get('ymin', -10)
@@ -319,7 +328,7 @@ def process_folder(mx, my, data_dict, out_dir):
 
     # Row 3, Col 2: Entropies
     ax = axs[2,2]
-    if "quantum" in data_dict:
+    if "qq" in data_dict:
         ax.plot(t, vn, 'C2-', label='Von Neumann')
         if lin is not None:
             ax.plot(t, lin, 'C3-', label='Linear')
@@ -335,64 +344,64 @@ def process_folder(mx, my, data_dict, out_dir):
         f"runtime: QQruntime={qruntime}, CCruntime={cruntime}, CQruntime={cqruntime}"
     ])
     fig.text(0.5, 0.91, subtitle, ha='center', fontsize=14)
-    fname = os.path.join(out_dir, f"panel_mx{mx}_my{my}.png")
+    fname = os.path.join(out_dir, f"panel_x0{x0}.png")
     fig.savefig(fname, dpi=300)
     plt.close(fig)
 
-def plot_entropy_energy_by_mx(grouped, out_dir):
+def plot_entropy_energy_by_x0(grouped, out_dir):
     os.makedirs(out_dir, exist_ok=True)
-    for mx, items in grouped.items():
+    for x0, items in grouped.items():
        
         fig, axs = plt.subplots(1, 2, figsize=(16, 6))
         
         # Energy
         ax_h = axs[0]
-        for my,(t,vn,energy) in sorted(items, key=lambda x: x[0]):
-            ax_h.plot(t, energy, label=f"my={my}")
-        ax_h.set_title(f"Oscillator Energy⟨Hx⟩ vs Time (mx={mx})")
+        for x0,(t,vn,energy) in sorted(items, key=lambda x: x[0]):
+            ax_h.plot(t, energy, label=f"x0={x0}")
+        ax_h.set_title(f"Oscillator Energy⟨Hx⟩ vs Time (x0={x0})")
         ax_h.set_xlabel("Time"); ax_h.set_ylabel("⟨Hx⟩"); ax_h.legend(); ax_h.grid(True)
         
         # Entropy
         ax_s = axs[1]
-        for my,(t,vn,energy) in sorted(items, key=lambda x: x[0]):
-            ax_s.plot(t, vn, label=f"my={my}")
-        ax_s.set_title(f"Von Neumann Entory vs Time (mx={mx})")
+        for x0,(t,vn,energy) in sorted(items, key=lambda x: x[0]):
+            ax_s.plot(t, vn, label=f"x0={x0}")
+        ax_s.set_title(f"Von Neumann Entropy vs Time (x0={x0})")
         ax_s.set_xlabel("Time"); ax_s.set_ylabel("VN Entropy"); ax_s.legend(); ax_s.grid(True)
         
         fig.tight_layout()
-        fig.savefig(os.path.join(out_dir, f"energy_entropy_vs_my_mx{mx}.png"), dpi =300)
+        fig.savefig(os.path.join(out_dir, f"energy_entropy_vs_x0_{x0}.png"), dpi =300)
         plt.close(fig)
 
 def main():
     root = "/Users/doyeonkim/Documents/Project_May/Three_Mode_VaryingMxMy_final/results_coherent"
     panel_dir = os.path.join(root, "panels_all_modes")
-    summary_dir = os.path.join(root, "entropy_energy_by_mx")
+    summary_dir = os.path.join(root, "entropy_energy_by_x0")
     os.makedirs(panel_dir, exist_ok=True)
     os.makedirs(summary_dir, exist_ok=True)
 
     all_data = scan_all_data(root_dir=root)
     grouped = {}
 
-    for (mx, my), data_dict in all_data.items():
+    for (x0), data_dict in all_data.items():
         try:
-            process_folder(mx, my, data_dict, panel_dir)
+            process_folder(x0, data_dict, panel_dir)
 
             # Only include quantum entries in entropy-energy summary
-            if "quantum" in data_dict:
-                qdata, _ = data_dict["quantum"]
+            if "qq" in data_dict:
+                qdata, _ = data_dict["qq"]
                 t = qdata["t"]
                 vn = qdata.get("vn_entropy", None)
                 energy = qdata["oscillator"][:,5]
 
                 if vn is not None:
-                    grouped.setdefault(mx, []).append((my, (t, vn, energy)))
+                    grouped.setdefault(x0, []).append((x0, (t, vn, energy)))
 
         except Exception as e:
-            print(f"[ERROR] mx={mx}, my={my} failed: {e}")
+            print(f"[ERROR] x0={x0} failed: {e}")
 
     # Only call plotting if there is quantum data grouped
     if grouped:
-        plot_entropy_energy_by_mx(grouped, summary_dir)
+        plot_entropy_energy_by_x0(grouped, summary_dir)
 
 if __name__ == "__main__":
     main()
