@@ -18,12 +18,12 @@ def extract_mx_my(folder_name):
 def load_simulation_data(folder, mode):
     """
     Load .npz + params.json from a folder, according to simulation mode.
-    mode must be one of: 'quantum', 'classical', 'cq'
+    mode must be one of: 'qq', 'cc', 'cq'
     """
-    if mode == "quantum":
+    if mode == "qq":
         npz_files = glob.glob(os.path.join(folder, "*_*.npz"))
-    elif mode == "classical":
-        npz_files = glob.glob(os.path.join(folder, "*classical_*.npz"))
+    elif mode == "cc":
+        npz_files = glob.glob(os.path.join(folder, "*cc_*.npz"))
     elif mode == "cq":
         npz_files = glob.glob(os.path.join(folder, "*cq_*.npz"))
     else:
@@ -39,17 +39,17 @@ def load_simulation_data(folder, mode):
         params = json.load(f)
     return data, params
 
-def scan_all_data(root_dir="results_tn4096"):
+def scan_all_data(root_dir="results_test"):
     """
-    Scan root_dir for subfolders: 'quantum', 'cq', 'classiscal'
+    Scan root_dir for subfolders: 'qq', 'cq', 'cc'
     Under each, look for mx*_my* folders and load data.
     Returns:
-        results[(mx, my)] = {'quantum':(...), 'classical':(...), 'cq':(...)}
+        results[(mx, my)] = {'qq':(...), 'cc':(...), 'cq':(...)}
     """
     folder_map = {
-        "quantum": "quantum",
+        "qq": "qq",
         "cq":      "cq",
-        "classical": "classical"
+        "cc": "cc"
     }
     results = {}
     for folder_name, mode_key in folder_map.items():
@@ -110,8 +110,8 @@ def process_folder(mx, my, data_dict, out_dir):
     vn = lin = None
 
     # Quantum data
-    if "quantum" in data_dict:
-        qdata, qparams = data_dict["quantum"]
+    if "qq" in data_dict:
+        qdata, qparams = data_dict["qq"]
         t = qdata["t"]
         osc = qdata["oscillator"]
         proj = qdata["projectile"]
@@ -126,8 +126,8 @@ def process_folder(mx, my, data_dict, out_dir):
         rho1_init = qdata["rho1_diag"][0]
         int_q = qdata["inter_energy"]
         std_int_q = qdata.get("std_inter_energy", None)
-        
-        qmeta = qparams.get("quantum", {})
+
+        qmeta = qparams.get("qq", {})
         xmin = qmeta.get('xmin', -10)
         xmax = qmeta.get('xmax', 10)
         nx   = qmeta.get('nx', 256)
@@ -148,9 +148,9 @@ def process_folder(mx, my, data_dict, out_dir):
         
         x_grid = np.linspace(xmin, xmax, nx)
 
-    # Classical data (folder 'classiscal')
-    if "classical" in data_dict:
-        cdata, cparams = data_dict["classical"]
+    # Classical data (folder 'cc')
+    if "cc" in data_dict:
+        cdata, cparams = data_dict["cc"]
         cc_x, cc_px, cc_Hx = cdata["x"], cdata["px"], cdata["Hx"]
         cc_y, cc_py, cc_Hy = cdata["y"], cdata["py"], cdata["Hy"]
         int_c = cdata["Hint"]
@@ -159,7 +159,7 @@ def process_folder(mx, my, data_dict, out_dir):
            t = cdata["t"]
       
         
-        cmeta = cparams.get("classical", {})
+        cmeta = cparams.get("cc", {})
         x0 = cmeta.get("x0")
         y0 = cmeta.get("y0")
         vx0 = cmeta.get("vx0")
@@ -203,22 +203,22 @@ def process_folder(mx, my, data_dict, out_dir):
     # Row 1: Oscillator
     osc_items = [
         ('Oscillator Position ⟨x⟩', '⟨x⟩', 
-        data_dict.get("classical", (None,))[0]["x"] if "classical" in data_dict else None,
-        data_dict.get("quantum", (None,))[0]["oscillator"][:,1] if "quantum" in data_dict else None,
+        data_dict.get("cc", (None,))[0]["x"] if "cc" in data_dict else None,
+        data_dict.get("qq", (None,))[0]["oscillator"][:,1] if "qq" in data_dict else None,
         data_dict.get("cq", (None,))[0]["x"] if "cq" in data_dict else None,
-        data_dict.get("quantum", (None,))[0]["oscillator"][:,3] if "quantum" in data_dict else None),
-        
-        ('Oscillator Momentum ⟨px⟩', '⟨px⟩', 
-        data_dict.get("classical", (None,))[0]["px"] if "classical" in data_dict else None,
-        data_dict.get("quantum", (None,))[0]["oscillator"][:,2] if "quantum" in data_dict else None,
+        data_dict.get("qq", (None,))[0]["oscillator"][:,3] if "qq" in data_dict else None),
+
+        ('Oscillator Momentum ⟨px⟩', '⟨px⟩',
+        data_dict.get("cc", (None,))[0]["px"] if "cc" in data_dict else None,
+        data_dict.get("qq", (None,))[0]["oscillator"][:,2] if "qq" in data_dict else None,
         data_dict.get("cq", (None,))[0]["px"] if "cq" in data_dict else None,
-        data_dict.get("quantum", (None,))[0]["oscillator"][:,4] if "quantum" in data_dict else None),
+        data_dict.get("qq", (None,))[0]["oscillator"][:,4] if "qq" in data_dict else None),
 
         ('Oscillator Energy ⟨Hx⟩', '⟨Hx⟩',
-        data_dict.get("classical", (None,))[0]["Hx"] if "classical" in data_dict else None,
-        data_dict.get("quantum", (None,))[0]["oscillator"][:,5] if "quantum" in data_dict else None,
+        data_dict.get("cc", (None,))[0]["Hx"] if "cc" in data_dict else None,
+        data_dict.get("qq", (None,))[0]["oscillator"][:,5] if "qq" in data_dict else None,
         data_dict.get("cq", (None,))[0]["Hx"] if "cq" in data_dict else None,
-        data_dict.get("quantum", (None,))[0]["oscillator"][:,6] if "quantum" in data_dict else None)
+        data_dict.get("qq", (None,))[0]["oscillator"][:,6] if "qq" in data_dict else None)
     ]
 
     for i, (ttl, lbl, cd, qd, cqd, std_q) in enumerate(osc_items):
@@ -248,19 +248,19 @@ def process_folder(mx, my, data_dict, out_dir):
             ax.axis("off")
     # Row 2: Projectile (general case)
     proj_items = [
-        ('Projectile Position ⟨y⟩', '⟨y⟩', exp_y if "quantum" in data_dict else None,
-        std_y if "quantum" in data_dict else None,
-        cc_y if "classical" in data_dict else None,
+        ('Projectile Position ⟨y⟩', '⟨y⟩', exp_y if "qq" in data_dict else None,
+        std_y if "qq" in data_dict else None,
+        cc_y if "cc" in data_dict else None,
         cq_y if "cq" in data_dict else None),
 
-        ('Projectile Momentum ⟨py⟩', '⟨py⟩', exp_py if "quantum" in data_dict else None,
-        std_py if "quantum" in data_dict else None,
-        cc_py if "classical" in data_dict else None,
+        ('Projectile Momentum ⟨py⟩', '⟨py⟩', exp_py if "qq" in data_dict else None,
+        std_py if "qq" in data_dict else None,
+        cc_py if "cc" in data_dict else None,
         cq_py if "cq" in data_dict else None),
 
-        ('Projectile Energy ⟨Hy⟩', '⟨Hy⟩', Hy if "quantum" in data_dict else None,
-        std_Hy if "quantum" in data_dict else None,
-        cc_Hy if "classical" in data_dict else None,
+        ('Projectile Energy ⟨Hy⟩', '⟨Hy⟩', Hy if "qq" in data_dict else None,
+        std_Hy if "qq" in data_dict else None,
+        cc_Hy if "cc" in data_dict else None,
         cq_Hy if "cq" in data_dict else None)
     ]
 

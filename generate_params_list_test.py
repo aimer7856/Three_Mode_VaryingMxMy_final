@@ -52,18 +52,19 @@ with open("coherent_param_list.txt", "w") as f:
 
         # Only include varying parameters in filename
         filename_parts = []
-        if len(mx_vals) > 1:
-            filename_parts.append(f"mx{mx}")
-        if len(my_vals) > 1:
-            filename_parts.append(f"my{my}")
-        if len(modes) > 1:
-            filename_parts.insert(0, mode)  # put mode first
-
-        filename = "_".join(filename_parts)
         # Add x0 or vx0 to filename if they are varied
         if len(x0_vals) > 1:
-            filename_parts.append(f"x0{x0}")
+            filename_parts.append(f"x0_{x0}")
         if len(vx0_vals) > 1:
             filename_parts.append(f"vx0{vx0}")
+        if len(mx_vals) > 1:
+            filename_parts.append(f"mx_{mx}")
+        if len(my_vals) > 1:
+            filename_parts.append(f"my_{my}")
+        if len(modes) > 1:
+            filename_parts.insert(0, mode)  # put mode first
+        print(filename_parts)
+        filename = "_".join(filename_parts)
+        
         row = list(map(str, combo)) + [filename]
         f.write(','.join(row) + '\n')
