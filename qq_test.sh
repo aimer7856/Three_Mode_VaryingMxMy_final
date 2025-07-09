@@ -21,7 +21,7 @@ export PYTHONNOUSERSITE=True
 # Read parameter line
 PARAM_FILE="param_list_qq.txt"
 # If param_list_qq.txt has a header, skip it; otherwise, remove 'tail -n +2'
-LINE=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" "$PARAM_FILE")
+LINE=$(tail -n +2 "$PARAM_FILE" | sed -n "$((SLURM_ARRAY_TASK_ID + 1))p")
 
 IFS=',' read -r MODE MX MY X0 VX0 NX XMIN XMAX NY YMIN YMAX Y0 VY0 SIGMAY TOTAL_TIME TIMESTEPS LAMBDA N_EIG FILENAME <<< "$LINE"
 
