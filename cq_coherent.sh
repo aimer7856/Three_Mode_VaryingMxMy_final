@@ -33,7 +33,7 @@ export MEM_LOG_FILE="${OUT_DIR}/mem_log.txt"
 RUN_LOG="${OUT_DIR}/run.log"
 START=$(date +%s)
 
-ppython RunSimulation_coherent.py \
+python RunSimulation_coherent.py \
   --mode "$MODE" --mx "$MX" --my "$MY" \
   --x0 "$X0" --vx0 "$VX0" \
   --nx "$NX" --xmin "$XMIN" --xmax "$XMAX" \
