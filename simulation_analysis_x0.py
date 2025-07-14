@@ -154,7 +154,7 @@ def process_folder(x0, data_dict, out_dir):
         total_time = qmeta.get('total_time')
         timesteps = qmeta.get('timesteps')
         
-        qruntime = qmeta.get('runtime_quantum')
+        qruntime = qmeta.get('runtime_qq')
         
         x_grid = np.linspace(xmin, xmax, nx)
 
@@ -179,7 +179,7 @@ def process_folder(x0, data_dict, out_dir):
         lambda_ = cmeta.get("lambda_")
         total_time = cmeta.get("total_time")
         timesteps = cmeta.get("timesteps")
-        cruntime = cmeta.get("runtime_classical")
+        cruntime = cmeta.get("runtime_cc")
         
     # CQ data
     if "cq" in data_dict:
