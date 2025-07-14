@@ -63,6 +63,7 @@ def scan_all_data(root_dir="results_coherent"):
     results = {}
     for folder_name, mode_key in folder_map.items():
         mode_dir = os.path.join(root_dir, folder_name)
+        print(mode_dir)
         if not os.path.isdir(mode_dir):
             continue
         for sub in os.listdir(mode_dir):
@@ -71,7 +72,7 @@ def scan_all_data(root_dir="results_coherent"):
             if not os.path.isdir(subpath):
                 continue
             x0 = extract_x0(sub)
-
+            print(x0)
             if x0 is None:
                 continue
             try:
@@ -336,9 +337,9 @@ def process_folder(x0, data_dict, out_dir):
         ax.legend(); ax.grid(True)
 
     fig = ax.figure
-    fig.suptitle(f"QQ vs CC vs CQ Observables (mx,my)= ({mx},{my})", fontsize=18)
+    fig.suptitle(f"QQ vs CC vs CQ Observables (x0,vx0)= ({x0},{vx0})", fontsize=18)
     subtitle = "\n".join([
-        f"(x0,y0)=({x0},{y0}), (sigmax,sigmay)=({sigmax:.2f}, {sigmay})",
+        f"(y0,vy0)=({y0},{vy0}), (sigmax,sigmay)=({sigmax:.2f}, {sigmay})",
         f"(xmin,xmax)=({xmin},{xmax}), (ymin,ymax)=({ymin},{ymax}), (nx,ny)=({nx},{ny})",
         f"lambda = {lambda_}, N_eig = {N_eig}, total_time = {total_time}, timesteps = {timesteps}",
         f"runtime: QQruntime={qruntime}, CCruntime={cruntime}, CQruntime={cqruntime}"
@@ -373,7 +374,8 @@ def plot_entropy_energy_by_x0(grouped, out_dir):
         plt.close(fig)
 
 def main():
-    root = "/Users/doyeonkim/Documents/Project_May/Three_Mode_VaryingMxMy_final/results_coherent"
+    root = "/Users/doyeonkim/OneDrive/Documents/Project1_Sanjeev/Three_Mode_VaryingMxMy_final/results_coherent"
+    print(root)
     panel_dir = os.path.join(root, "panels_all_modes")
     summary_dir = os.path.join(root, "entropy_energy_by_x0")
     os.makedirs(panel_dir, exist_ok=True)
